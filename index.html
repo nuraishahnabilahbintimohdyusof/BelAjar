@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BelAjar is a student life tracker for GPA/CGPA, courses, assignments and exams.">
+  <title>BelAjar | Student Life Tracker</title>
+
+  <!-- Bootstrap 5.3.8 + Icons + Inter font -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== AUTHENTICATION ===================== -->
+  <main id="authPage" class="auth-page">
+    <section class="auth-brand">
+      <div class="brand-mark"><i class="bi bi-mortarboard"></i></div>
+      <h1>BelAjar</h1>
+      <p>Your whole degree journey, one dashboard.</p>
+      <div class="auth-illustration">
+        <div class="illustration-card">
+          <span class="eyebrow">YOUR CGPA GOAL</span>
+          <h4>Every semester counts.</h4>
+          <div class="progress mt-3"><div class="progress-bar" style="width:86%"></div></div>
+          <small>3.45 of 4.00</small>
+        </div>
+      </div>
+      <p class="auth-footer-note">Track courses, results, assignments and exams.</p>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-box">
+        <!-- LOGIN -->
+        <div id="loginSection">
+          <p class="eyebrow">WELCOME BACK</p>
+          <h2>Sign in to BelAjar</h2>
+          <p class="muted mb-4">Enter your details to continue.</p>
+          <form id="loginForm">
+            <label class="form-label" for="loginUsername">Username</label>
+            <input class="form-control form-control-lg mb-3" id="loginUsername" required placeholder="Enter username">
+            <label class="form-label" for="loginPassword">Password</label>
+            <input class="form-control form-control-lg mb-2" id="loginPassword" type="password" required placeholder="Enter password">
+            <div id="loginMessage" class="form-message"></div>
+            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Sign In <i class="bi bi-arrow-right ms-2"></i></button>
+          </form>
+          <div class="demo-login mt-4">
+            <span class="eyebrow">DEMO ACCOUNT (FOR LECTURER)</span>
+            <p class="mb-1">Preloaded with 4 semesters of sample data.</p>
+            <p class="mb-2"><b>Username:</b> admin<br><b>Password:</b> 1234</p>
+            <button class="btn btn-outline-primary w-100" id="demoLoginButton" type="button"><i class="bi bi-lightning-charge me-2"></i>Demo Login</button>
+          </div>
+          <p class="auth-switch">New here? <button class="link-button" id="showRegister" type="button">Create an account</button></p>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerSection" class="d-none">
+          <p class="eyebrow">GET STARTED</p>
+          <h2>Create your account</h2>
+          <p class="muted mb-4">Start with a clean slate and add your own courses.</p>
+          <form id="registerForm">
+            <label class="form-label" for="registerName">Full name</label>
+            <input class="form-control mb-3" id="registerName" required maxlength="60" placeholder="Your name">
+            <label class="form-label" for="registerUsername">Username</label>
+            <input class="form-control mb-3" id="registerUsername" required minlength="3" maxlength="20" placeholder="Choose a username">
+            <label class="form-label" for="registerPassword">Password</label>
+            <input class="form-control mb-3" id="registerPassword" type="password" required minlength="4" placeholder="At least 4 characters">
+            <label class="form-label" for="confirmPassword">Confirm password</label>
+            <input class="form-control mb-2" id="confirmPassword" type="password" required placeholder="Re-enter password">
+            <div id="registerMessage" class="form-message"></div>
+            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Create Account</button>
+          </form>
+          <p class="auth-switch">Already have an account? <button class="link-button" id="showLogin" type="button">Sign in</button></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== MAIN APPLICATION ===================== -->
+  <div id="appShell" class="app-shell d-none">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <a href="#" class="sidebar-brand" data-page="dashboardPage">
+        <span class="brand-mark"><i class="bi bi-mortarboard"></i></span><span>BelAjar</span>
+      </a>
+      <div class="workspace-label">MENU</div>
+      <nav class="side-nav">
+        <button class="nav-link active" data-page="dashboardPage"><i class="bi bi-grid-1x2"></i> Dashboard</button>
+        <button class="nav-link" data-page="coursesPage"><i class="bi bi-journal-bookmark"></i> Courses &amp; Results</button>
+        <button class="nav-link" data-page="plannerPage"><i class="bi bi-calendar-check"></i> Assignments &amp; Exams</button>
+        <button class="nav-link" data-page="calendarPage"><i class="bi bi-calendar3"></i> Calendar</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-tip"><i class="bi bi-lightbulb"></i><b>Start early</b><p>Study standby alerts appear 14 days before an exam.</p></div>
+        <button class="nav-link" id="sidebarLogout"><i class="bi bi-box-arrow-left"></i> Log out</button>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="mobileMenuButton" aria-label="Open menu"><i class="bi bi-list"></i></button>
+        <div class="topbar-heading"><span class="eyebrow">YOUR JOURNEY</span><strong id="topbarPageTitle">Dashboard</strong></div>
+        <div class="topbar-actions">
+          <div class="dropdown">
+            <button class="icon-button" data-bs-toggle="dropdown" title="Theme" aria-label="Change theme"><i class="bi bi-circle-half"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><button class="dropdown-item" data-theme-choice="light"><i class="bi bi-sun me-2"></i>Light</button></li>
+              <li><button class="dropdown-item" data-theme-choice="dark"><i class="bi bi-moon-stars me-2"></i>Dark</button></li>
+              <li><button class="dropdown-item" data-theme-choice="system"><i class="bi bi-display me-2"></i>System default</button></li>
+            </ul>
+          </div>
+          <button class="icon-button" id="fullscreenButton" title="Fullscreen" aria-label="Toggle fullscreen"><i class="bi bi-arrows-fullscreen"></i></button>
+          <button class="icon-button notification-button" id="notificationButton" title="Notifications" aria-label="Notifications">
+            <i class="bi bi-bell"></i><span class="notification-badge d-none" id="notificationBadge">0</span>
+          </button>
+          <div class="dropdown">
+            <button class="profile-button" data-bs-toggle="dropdown">
+              <span class="avatar" id="userAvatar">U</span><span id="profileName">User</span><i class="bi bi-chevron-down small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><span class="dropdown-item-text small muted" id="profileUsername">@username</span></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><button class="dropdown-item" id="profileLogout"><i class="bi bi-box-arrow-right me-2"></i>Log out</button></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-wrap">
+
+        <!-- ============ DASHBOARD ============ -->
+        <section id="dashboardPage" class="page-section">
+          <div class="page-heading-row">
+            <div><p class="eyebrow">OVERVIEW</p><h1 id="welcomeHeading">Good day!</h1><p class="muted">Your academic progress at a glance.</p></div>
+          </div>
+
+          <div id="examBanner"></div>
+
+          <!-- Semester card: current week, phase and dates -->
+          <div id="semesterCard" class="panel semester-card mb-4"></div>
+
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span>CGPA</span><span class="stat-icon purple"><i class="bi bi-trophy"></i></span></div><strong id="cgpaValue">–</strong><small>Cumulative, out of 4.00</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Latest GPA</span><span class="stat-icon green"><i class="bi bi-graph-up-arrow"></i></span></div><strong id="gpaValue">–</strong><small id="gpaLabel">Latest graded semester</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Credits Earned</span><span class="stat-icon blue"><i class="bi bi-journal-check"></i></span></div><strong id="creditsValue">0</strong><small>Credit hours passed</small></article>
+            <article class="stat-card"><div class="stat-top"><span>Pending Tasks</span><span class="stat-icon orange"><i class="bi bi-hourglass-split"></i></span></div><strong id="pendingValue">0</strong><small>Assignments, quizzes and exams</small></article>
+          </div>
+
+          <!-- All charts visible at once -->
+          <div class="charts-grid">
+            <article class="panel chart-wide">
+              <div class="panel-heading"><div><h2>GPA &amp; CGPA by Semester</h2><p class="muted">Your results from Semester 1 onwards</p></div></div>
+              <div class="chart-container"><canvas id="gpaChart"></canvas></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Grade Distribution</h2><p class="muted">All graded courses</p></div></div>
+              <div class="chart-container"><canvas id="gradeChart"></canvas></div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><h2>Tasks by Status</h2><p class="muted">How many items are done, pending or overdue</p></div></div>
+              <div class="chart-container"><canvas id="statusChart"></canvas></div>
+            </article>
+            <article class="panel chart-wide">
+              <div class="panel-heading"><div><h2>Tasks by Subject</h2><p class="muted">Items per course, split by status</p></div></div>
+              <div class="chart-container"><canvas id="subjectChart"></canvas></div>
+            </article>
+          </div>
+
+          <article class="panel mt-4">
+            <div class="panel-heading">
+              <div><h2>Coming Up</h2><p class="muted">Your next deadlines and exams</p></div>
+              <button class="btn btn-light btn-sm" data-go-page="plannerPage">View all <i class="bi bi-arrow-right ms-1"></i></button>
+            </div>
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Date</th></tr></thead>
+                <tbody id="upcomingBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state d-none" id="upcomingEmpty">Nothing pending. Enjoy the break!</div>
+          </article>
+        </section>
+
+        <!-- ============ COURSES & RESULTS (DATA PAGE 1) ============ -->
+        <section id="coursesPage" class="page-section d-none">
+          <div class="page-heading-row">
+            <div><p class="eyebrow">ACADEMIC RECORD</p><h1>Courses &amp; Results</h1><p class="muted">Add courses per semester and track your GPA and CGPA.</p></div>
+            <button class="btn btn-primary" id="addCourseButton"><i class="bi bi-plus-lg me-2"></i>Add Course</button>
+          </div>
+          <article class="panel">
+            <div class="task-toolbar">
+              <select id="semFilter" class="form-select"></select>
+              <select id="totalSems" class="form-select" title="Programme length"></select>
+            </div>
+            <p class="sem-summary" id="semSummary"></p>
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead><tr><th>Sem</th><th>Code</th><th>Course</th><th>Credit</th><th>Grade</th><th>Points</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="courseBody"></tbody>
+              </table>
+            </div>
+            <div id="courseEmpty" class="empty-state d-none"><i class="bi bi-journal-plus"></i><h3>No courses yet</h3><p>Add your first course to start tracking.</p></div>
+          </article>
+        </section>
+
+        <!-- ============ ASSIGNMENTS & EXAMS (DATA PAGE 2) ============ -->
+        <section id="plannerPage" class="page-section d-none">
+          <div class="page-heading-row">
+            <div><p class="eyebrow">STAY AHEAD</p><h1>Assignments &amp; Exams</h1><p class="muted">Deadlines and exam dates with live countdowns.</p></div>
+            <button class="btn btn-primary" id="addTaskButton"><i class="bi bi-plus-lg me-2"></i>Add Item</button>
+          </div>
+          <article class="panel">
+            <div class="task-toolbar">
+              <select id="typeFilter" class="form-select"><option value="all">All types</option><option>Assignment</option><option>Quiz</option><option>Exam</option></select>
+              <select id="statusFilter" class="form-select"><option value="all">All statuses</option><option>Pending</option><option>Done</option></select>
+              <select id="modeFilter" class="form-select"><option value="all">Individual &amp; group</option><option>Individual</option><option>Group</option></select>
+            </div>
+            <div class="table-responsive">
+              <table class="table align-middle">
+                <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Mode</th><th>Date</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody id="taskBody"></tbody>
+              </table>
+            </div>
+            <div id="taskEmpty" class="empty-state d-none"><i class="bi bi-calendar-plus"></i><h3>No items found</h3><p>Add an assignment, quiz or exam date.</p></div>
+          </article>
+        </section>
+
+        <!-- ============ CALENDAR ============ -->
+        <section id="calendarPage" class="page-section d-none">
+          <div class="page-heading-row">
+            <div><p class="eyebrow">PLAN YOUR WEEKS</p><h1>Calendar</h1><p class="muted">Deadlines, exams and semester dates in one view.</p></div>
+            <div class="cal-nav">
+              <button class="btn btn-light btn-sm" id="calPrev" aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
+              <strong id="calTitle"></strong>
+              <button class="btn btn-light btn-sm" id="calNext" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
+              <button class="btn btn-outline-primary btn-sm" id="calToday">Today</button>
+            </div>
+          </div>
+          <article class="panel">
+            <div class="cal-legend">
+              <span><i class="type-assignment"></i>Assignment</span><span><i class="type-quiz"></i>Quiz</span><span><i class="type-exam"></i>Exam</span>
+              <span><i class="cal-break-key"></i>Mid-sem break</span><span><i class="cal-today-key"></i>Today</span>
+            </div>
+            <div class="cal-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+            <div class="cal-grid" id="calGrid"></div>
+          </article>
+          <article class="panel mt-4">
+            <div class="panel-heading"><div><h2>This Month</h2><p class="muted">All deadlines and exams in the month shown</p></div></div>
+            <div id="calList"></div>
+          </article>
+        </section>
+
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="app-footer">
+        <nav class="footer-menu" aria-label="Footer menu">
+          <button type="button" data-page="dashboardPage">Dashboard</button>
+          <span>·</span>
+          <button type="button" data-page="coursesPage">Courses &amp; Results</button>
+          <span>·</span>
+          <button type="button" data-page="plannerPage">Assignments &amp; Exams</button>
+          <span>·</span>
+          <button type="button" data-page="calendarPage">Calendar</button>
+        </nav>
+        <p>© 2026 BelAjar · IMS566 Individual Project by Nur Aishah Nabilah</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ===================== COURSE MODAL ===================== -->
+  <div class="modal fade" id="courseModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <form id="courseForm">
+        <div class="modal-header"><div><p class="eyebrow mb-1">COURSE</p><h2 class="modal-title fs-5" id="courseModalTitle">Add Course</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <input type="hidden" id="editingCourseId">
+          <div class="row">
+            <div class="col-md-5"><label class="form-label" for="cCode">Course code</label><input class="form-control mb-3" id="cCode" required maxlength="10" placeholder="e.g. IMS566"></div>
+            <div class="col-md-7"><label class="form-label" for="cName">Course name</label><input class="form-control mb-3" id="cName" required maxlength="60" placeholder="e.g. Advanced Web Design"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-4"><label class="form-label" for="cCredit">Credit hours</label><input class="form-control mb-3" id="cCredit" type="number" min="1" max="8" required value="3"></div>
+            <div class="col-md-4"><label class="form-label" for="courseSem">Semester</label><select class="form-select mb-3" id="courseSem"></select></div>
+            <div class="col-md-4"><label class="form-label" for="cGrade">Grade</label><select class="form-select mb-3" id="cGrade"></select></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- ===================== ASSIGNMENT / EXAM MODAL ===================== -->
+  <div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <form id="taskForm">
+        <div class="modal-header"><div><p class="eyebrow mb-1">ASSIGNMENT / EXAM</p><h2 class="modal-title fs-5" id="taskModalTitle">Add Item</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <input type="hidden" id="editingTaskId">
+          <label class="form-label" for="tTitle">Title</label>
+          <input class="form-control mb-3" id="tTitle" required maxlength="80" placeholder="e.g. Mid-semester test">
+          <div class="row">
+            <div class="col-md-4"><label class="form-label" for="tCourse">Course code</label><input class="form-control mb-3" id="tCourse" list="courseList" required maxlength="10"><datalist id="courseList"></datalist></div>
+            <div class="col-md-4"><label class="form-label" for="tType">Type</label><select class="form-select mb-3" id="tType"><option>Assignment</option><option>Quiz</option><option>Exam</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="tMode">Mode</label><select class="form-select mb-3" id="tMode"><option>Individual</option><option>Group</option></select></div>
+          </div>
+          <div class="row">
+            <div class="col-md-6"><label class="form-label" for="tDate">Date</label><input class="form-control" id="tDate" type="date" required></div>
+            <div class="col-md-6"><label class="form-label" for="tStatus">Status</label><select class="form-select" id="tStatus"><option>Pending</option><option>Done</option></select></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- ===================== SEMESTER DATES MODAL ===================== -->
+  <div class="modal fade" id="semesterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <form id="semesterForm">
+        <div class="modal-header"><div><p class="eyebrow mb-1">SEMESTER</p><h2 class="modal-title fs-5">Semester Dates</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <label class="form-label" for="semNo">Semester</label>
+          <select class="form-select mb-3" id="semNo"></select>
+          <div class="row">
+            <div class="col-md-6"><label class="form-label" for="semStart">Start date</label><input class="form-control mb-3" id="semStart" type="date" required></div>
+            <div class="col-md-6"><label class="form-label" for="semEnd">End date</label><input class="form-control mb-3" id="semEnd" type="date" required></div>
+          </div>
+          <p class="muted small mb-2">Mid-sem break (optional)</p>
+          <div class="row">
+            <div class="col-md-6"><label class="form-label" for="midStart">Break starts</label><input class="form-control" id="midStart" type="date"></div>
+            <div class="col-md-6"><label class="form-label" for="midEnd">Break ends</label><input class="form-control" id="midEnd" type="date"></div>
+          </div>
+          <div id="semesterMessage" class="form-message"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- ===================== NOTIFICATIONS MODAL ===================== -->
+  <div class="modal fade" id="notificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title fs-5">Notifications</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+      <div class="modal-body" id="notificationContent"></div>
+    </div></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
