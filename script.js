@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentUser = null;
   let courses = [];
   let tasks = [];
+  let events = [];
   let meta = { totalSems: 6 };
   let charts = {};
 
@@ -30,14 +31,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const u = currentUser.username;
     localStorage.setItem(key("Courses", u), JSON.stringify(courses));
     localStorage.setItem(key("Tasks", u), JSON.stringify(tasks));
+    localStorage.setItem(key("Events", u), JSON.stringify(events));
     localStorage.setItem(key("Meta", u), JSON.stringify(meta));
   }
 
   function loadData(u) {
     const read = (name, fallback) => { try { return JSON.parse(localStorage.getItem(key(name, u))) ?? fallback; } catch { return fallback; } };
     courses = read("Courses", []);
-    tasks = read("Tasks", []).map(t => ({ mode: "Individual", ...t })); // older items default to Individual
+    tasks = read("Tasks", []).map(t => ({ mode: "Individual", priority: "Medium", ...t })); // older items get defaults
     meta = read("Meta", { totalSems: 6 });
+    events = read("Events", []);
   }
 
   // YYYY-MM-DD in local time, offset by N days
@@ -76,6 +79,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return { semNo: 4, semStart: makeDate(-49), semEnd: makeDate(56), midStart: makeDate(14), midEnd: makeDate(20) };
   }
 
+  // Demo priority: exams and IMS566 are High, essays Low, the rest Medium
+  const samplePriority = (title) => /IMS566|Exam|Test/.test(title) ? "High" : /Essay/.test(title) ? "Low" : "Medium";
+
+  function sampleEvents() {
+    const rows = [
+      ["Photography Club Meeting", "Club", 2, "20:00", "Plan the outing"],
+      ["Cafe Shift (Part-time)", "Part-time", 3, "17:00", "5pm to 10pm"],
+      ["Family Dinner", "Personal", 6, "19:30", ""],
+      ["Career Talk: Tech Industry", "Program", 8, "10:00", "Dewan Kuliah 2"],
+      ["Cafe Shift (Part-time)", "Part-time", 10, "17:00", ""],
+      ["Committee Meeting", "Club", 12, "21:00", "Online via Teams"]
+    ];
+    return rows.map((r, i) => ({ id: "e" + i, title: r[0], category: r[1], date: makeDate(r[2]), time: r[3], notes: r[4] }));
+  }
+
   function sampleTasks() {
     const rows = [
       ["IMS566 Individual Project", "IMS566", "Assignment", 4, "Pending"],
@@ -86,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["IT Law Essay", "LAW401", "Assignment", -2, "Done"],
       ["Final Exam: IMS566", "IMS566", "Exam", 40, "Pending"]
     ];
-    return rows.map((r, i) => ({ id: "t" + i, title: r[0], course: r[1], type: r[2], date: makeDate(r[3]), status: r[4], mode: GROUP_TITLES.includes(r[0]) ? "Group" : "Individual" }));
+    return rows.map((r, i) => ({ id: "t" + i, title: r[0], course: r[1], type: r[2], date: makeDate(r[3]), status: r[4], mode: GROUP_TITLES.includes(r[0]) ? "Group" : "Individual", priority: samplePriority(r[0]) }));
   }
 
   (function initialiseAdmin() {
@@ -102,8 +120,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminMeta = JSON.parse(localStorage.getItem(key("Meta", "admin")) || "{}");
     if (!adminMeta.semStart) localStorage.setItem(key("Meta", "admin"), JSON.stringify({ totalSems: 6, ...adminMeta, ...sampleMeta() }));
     const adminTasks = JSON.parse(localStorage.getItem(key("Tasks", "admin")) || "[]");
-    if (adminTasks.length && !adminTasks[0].mode) {
-      localStorage.setItem(key("Tasks", "admin"), JSON.stringify(adminTasks.map(t => ({ ...t, mode: GROUP_TITLES.includes(t.title) ? "Group" : "Individual" }))));
+    if (adminTasks.length && (!adminTasks[0].mode || !adminTasks[0].priority)) {
+      localStorage.setItem(key("Tasks", "admin"), JSON.stringify(adminTasks.map(t => ({
+        ...t, mode: t.mode || (GROUP_TITLES.includes(t.title) ? "Group" : "Individual"), priority: t.priority || samplePriority(t.title)
+      }))));
+    }
+    if (localStorage.getItem(key("Events", "admin")) === null) {
+      localStorage.setItem(key("Events", "admin"), JSON.stringify(sampleEvents()));
     }
   })();
 
@@ -144,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function logout() {
     currentUser = null;
-    courses = []; tasks = [];
+    courses = []; tasks = []; events = [];
     Object.values(charts).forEach(c => c.destroy());
     charts = {};
     $("appShell").classList.add("d-none");
@@ -322,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("tCourse").value = task ? task.course : "";
     $("tType").value = task ? task.type : "Assignment";
     $("tMode").value = task ? task.mode : "Individual";
+    $("tPriority").value = task ? task.priority : "Medium";
     $("tDate").value = task ? task.date : makeDate(7);
     $("tStatus").value = task ? task.status : "Pending";
     taskModal.show();
@@ -338,6 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
       course: $("tCourse").value.trim().toUpperCase(),
       type: $("tType").value,
       mode: $("tMode").value,
+      priority: $("tPriority").value,
       date: $("tDate").value,
       status: $("tStatus").value
     };
@@ -356,21 +381,35 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const typeBadge = (t) => `<span class="status-badge type-${t.type.toLowerCase()}">${t.type}</span>`;
-  const modeBadge = (t) => `<span class="status-badge mode-${t.mode.toLowerCase()}">${t.mode}</span>`;
+  const priorityBadge = (t) => `<span class="status-badge priority-${t.priority.toLowerCase()}">${t.priority}</span>`;
+
+  // Sorting: finished items always go last; the rest follow the chosen order
+  const PRIORITY_RANK = { High: 0, Medium: 1, Low: 2 };
+  function taskSorter() {
+    const order = $("sortSelect").value;
+    return (a, b) => {
+      if ((a.status === "Done") !== (b.status === "Done")) return a.status === "Done" ? 1 : -1;
+      const byDate = a.date.localeCompare(b.date);
+      if (order === "deadline-desc") return -byDate;
+      if (order === "priority-high") return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority] || byDate;
+      if (order === "priority-low") return PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority] || byDate;
+      if (order === "course") return a.course.localeCompare(b.course) || byDate;
+      return byDate;
+    };
+  }
 
   function renderTasks() {
     const type = $("typeFilter").value;
     const status = $("statusFilter").value;
     const mode = $("modeFilter").value;
     const list = tasks.filter(t => (type === "all" || t.type === type) && (status === "all" || t.status === status) && (mode === "all" || t.mode === mode))
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort(taskSorter());
 
     $("taskBody").innerHTML = list.map(t => `
       <tr>
-        <td><div class="task-name-cell">${escapeHTML(t.title)}</div></td>
-        <td>${escapeHTML(t.course)}</td>
+        <td><div class="task-name-cell">${escapeHTML(t.title)}</div><div class="task-sub">${escapeHTML(t.course)} · ${t.mode}</div></td>
         <td>${typeBadge(t)}</td>
-        <td>${modeBadge(t)}</td>
+        <td>${priorityBadge(t)}</td>
         <td>${formatDate(t.date)}${countdown(t)}</td>
         <td><span class="status-badge state-${t.status.toLowerCase()}">${t.status}</span></td>
         <td><div class="action-buttons">
@@ -393,7 +432,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else if (confirm("Delete this item?")) { tasks = tasks.filter(t => t.id !== task.id); refreshAll(); }
   });
 
-  ["typeFilter", "statusFilter", "modeFilter"].forEach(id => $(id).addEventListener("change", renderTasks));
+  ["typeFilter", "statusFilter", "modeFilter", "sortSelect"].forEach(id => $(id).addEventListener("change", renderTasks));
 
   // ---------- SEMESTER: detect start / end, current week and phase ----------
   const semesterModal = new bootstrap.Modal($("semesterModal"));
@@ -466,7 +505,42 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshAll();
   });
 
-  // ---------- CALENDAR ----------
+  // ---------- CALENDAR (deadlines + personal events) ----------
+  const eventModal = new bootstrap.Modal($("eventModal"));
+  const EVENT_CATEGORIES = ["Club", "Program", "Part-time", "Personal", "Other"];
+  const evClass = (c) => "ev-" + c.toLowerCase().replace(/[^a-z]/g, "");
+  $("evCategory").innerHTML = EVENT_CATEGORIES.map(c => `<option>${c}</option>`).join("");
+
+  function openEventModal(ev = null, date = null) {
+    $("eventForm").reset();
+    $("editingEventId").value = ev ? ev.id : "";
+    $("eventModalTitle").textContent = ev ? "Edit Event" : "Add Event";
+    $("evTitle").value = ev ? ev.title : "";
+    $("evCategory").value = ev ? ev.category : "Club";
+    $("evDate").value = ev ? ev.date : (date || makeDate(0));
+    $("evTime").value = ev ? ev.time : "";
+    $("evNotes").value = ev ? ev.notes : "";
+    $("deleteEventButton").classList.toggle("d-none", !ev);
+    eventModal.show();
+  }
+
+  $("addEventButton").addEventListener("click", () => openEventModal());
+
+  $("eventForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const id = $("editingEventId").value;
+    const ev = { id: id || "e" + Date.now(), title: $("evTitle").value.trim(), category: $("evCategory").value, date: $("evDate").value, time: $("evTime").value, notes: $("evNotes").value.trim() };
+    if (!ev.title || !ev.date) return;
+    events = id ? events.map(x => x.id === id ? ev : x) : [...events, ev];
+    eventModal.hide();
+    refreshAll();
+  });
+
+  $("deleteEventButton").addEventListener("click", () => {
+    const id = $("editingEventId").value;
+    if (id && confirm("Delete this event?")) { events = events.filter(x => x.id !== id); eventModal.hide(); refreshAll(); }
+  });
+
   let calMonth = new Date();
   calMonth.setDate(1);
 
@@ -483,25 +557,38 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ds === meta.semStart) marks.push("Semester starts");
       if (ds === meta.semEnd) marks.push("Semester ends");
       const onBreak = meta.midStart && meta.midEnd && ds >= meta.midStart && ds <= meta.midEnd;
-      const events = tasks.filter(t => t.date === ds).map(t =>
-        `<button class="cal-event type-${t.type.toLowerCase()} ${t.status === "Done" ? "done" : ""}" data-id="${escapeHTML(t.id)}" title="${escapeHTML(t.title)} (${escapeHTML(t.course)}, ${t.mode})">${escapeHTML(t.title)}</button>`).join("");
-      cells.push(`<div class="cal-cell ${ds === makeDate(0) ? "today" : ""} ${onBreak ? "break" : ""}">
-        <span class="cal-day">${d}</span>${marks.map(t => `<span class="cal-mark">${t}</span>`).join("")}<div class="cal-events">${events}</div></div>`);
+
+      const taskChips = tasks.filter(t => t.date === ds).map(t =>
+        `<button class="cal-event type-${t.type.toLowerCase()} ${t.status === "Done" ? "done" : ""}" data-kind="task" data-id="${escapeHTML(t.id)}" title="${escapeHTML(t.title)} (${escapeHTML(t.course)})">${escapeHTML(t.title)}</button>`);
+      const eventChips = events.filter(x => x.date === ds).sort((a, b) => (a.time || "").localeCompare(b.time || "")).map(x =>
+        `<button class="cal-event ${evClass(x.category)}" data-kind="event" data-id="${escapeHTML(x.id)}" title="${escapeHTML(x.title)}">${x.time ? x.time + " " : ""}${escapeHTML(x.title)}</button>`);
+
+      cells.push(`<div class="cal-cell ${ds === makeDate(0) ? "today" : ""} ${onBreak ? "break" : ""}" data-date="${ds}" title="Click to add an event">
+        <span class="cal-day">${d}</span>${marks.map(t => `<span class="cal-mark">${t}</span>`).join("")}<div class="cal-events">${taskChips.concat(eventChips).join("")}</div></div>`);
     }
     $("calGrid").innerHTML = cells.join("");
 
+    // "This Month" list: deadlines and personal events together
     const prefix = `${y}-${pad(m + 1)}`;
-    const monthTasks = tasks.filter(t => t.date.startsWith(prefix)).sort((a, b) => a.date.localeCompare(b.date));
-    $("calList").innerHTML = monthTasks.length ? monthTasks.map(t => `
-      <div class="cal-list-row"><span class="cal-list-date">${formatDate(t.date)}</span>
-        <span class="cal-list-title">${escapeHTML(t.title)} <small class="muted">(${escapeHTML(t.course)})</small></span>${modeBadge(t)} ${typeBadge(t)}</div>`).join("")
-      : '<p class="muted mb-0">No deadlines or exams this month.</p>';
+    const rows = [
+      ...tasks.filter(t => t.date.startsWith(prefix)).map(t => ({ date: t.date, time: "", title: `${escapeHTML(t.title)} <small class="muted">(${escapeHTML(t.course)})</small>`, badges: `${priorityBadge(t)} ${typeBadge(t)}` })),
+      ...events.filter(x => x.date.startsWith(prefix)).map(x => ({ date: x.date, time: x.time || "", title: `${escapeHTML(x.title)}${x.time ? ` <small class="muted">at ${x.time}</small>` : ""}${x.notes ? ` <small class="muted">· ${escapeHTML(x.notes)}</small>` : ""}`, badges: `<span class="status-badge ${evClass(x.category)}">${x.category}</span>` }))
+    ].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+
+    $("calList").innerHTML = rows.length ? rows.map(r => `
+      <div class="cal-list-row"><span class="cal-list-date">${formatDate(r.date)}</span><span class="cal-list-title">${r.title}</span>${r.badges}</div>`).join("")
+      : '<p class="muted mb-0">Nothing scheduled this month. Click a day to add an event.</p>';
   }
 
   $("calGrid").addEventListener("click", e => {
-    const btn = e.target.closest(".cal-event");
-    const task = btn && tasks.find(t => t.id === btn.dataset.id);
-    if (task) openTaskModal(task);
+    const chip = e.target.closest(".cal-event");
+    if (chip) {
+      if (chip.dataset.kind === "event") openEventModal(events.find(x => x.id === chip.dataset.id) || null);
+      else { const t = tasks.find(x => x.id === chip.dataset.id); if (t) openTaskModal(t); }
+      return;
+    }
+    const cell = e.target.closest(".cal-cell[data-date]");
+    if (cell) openEventModal(null, cell.dataset.date);
   });
   $("calPrev").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); });
   $("calNext").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); });
@@ -626,6 +713,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const d = daysUntil(meta.semEnd);
       if (d >= 0 && d <= 14) items.push({ d, icon: "bi-flag", color: "text-primary", title: "Semester ending", text: `Semester ends ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
     }
+    events.forEach(x => {
+      const d = daysUntil(x.date);
+      if (d === 0 || d === 1) items.push({ d, icon: "bi-calendar-event", color: "text-info", title: x.category, text: `${escapeHTML(x.title)} ${d === 0 ? "today" : "tomorrow"}${x.time ? " at " + x.time : ""}.` });
+    });
     items.sort((a, b) => a.d - b.d);
 
     $("notificationBadge").textContent = items.length;
