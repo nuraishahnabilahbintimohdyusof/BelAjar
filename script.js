@@ -202,6 +202,14 @@ document.addEventListener("DOMContentLoaded", () => {
     startSession(newUser); // new accounts start empty
   });
 
+  // Show / hide password buttons
+  document.querySelectorAll(".pw-toggle").forEach(btn => btn.addEventListener("click", () => {
+    const input = $(btn.dataset.target);
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    btn.querySelector("i").className = show ? "bi bi-eye-slash" : "bi bi-eye";
+  }));
+
   $("showRegister").addEventListener("click", showRegister);
   $("showLogin").addEventListener("click", showLogin);
   $("sidebarLogout").addEventListener("click", logout);
