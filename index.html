@@ -16,66 +16,77 @@
 
   <!-- ===================== AUTHENTICATION ===================== -->
   <main id="authPage" class="auth-page">
-    <section class="auth-brand">
-      <div class="brand-mark"><i class="bi bi-mortarboard"></i></div>
-      <h1>BelAjar</h1>
-      <p>Your whole degree journey, one dashboard.</p>
-      <div class="auth-illustration">
-        <div class="illustration-card">
-          <span class="eyebrow">YOUR CGPA GOAL</span>
-          <h4>Every semester counts.</h4>
-          <div class="progress mt-3"><div class="progress-bar" style="width:86%"></div></div>
-          <small>3.45 of 4.00</small>
-        </div>
-      </div>
-      <p class="auth-footer-note">Track courses, results, assignments and exams.</p>
-    </section>
+    <!-- Decorative background -->
+    <span class="auth-shape one"></span><span class="auth-shape two"></span><span class="auth-shape three"></span>
+    <div class="auth-chip chip-a"><i class="bi bi-trophy"></i><span>CGPA 3.45<small>Track every semester</small></span></div>
+    <div class="auth-chip chip-b"><i class="bi bi-calendar-week"></i><span>Week 8 of 16<small>Know where you are</small></span></div>
+    <div class="auth-chip chip-c"><i class="bi bi-alarm"></i><span>Exam in 10 days<small>Study standby alert</small></span></div>
 
-    <section class="auth-panel">
-      <div class="auth-box">
-        <!-- LOGIN -->
-        <div id="loginSection">
-          <p class="eyebrow">WELCOME BACK</p>
-          <h2>Sign in to BelAjar</h2>
-          <p class="muted mb-4">Enter your details to continue.</p>
-          <form id="loginForm">
-            <label class="form-label" for="loginUsername">Username</label>
-            <input class="form-control form-control-lg mb-3" id="loginUsername" required placeholder="Enter username">
-            <label class="form-label" for="loginPassword">Password</label>
-            <input class="form-control form-control-lg mb-2" id="loginPassword" type="password" required placeholder="Enter password">
-            <div id="loginMessage" class="form-message"></div>
-            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Sign In <i class="bi bi-arrow-right ms-2"></i></button>
-          </form>
-          <div class="demo-login mt-4">
-            <span class="eyebrow">DEMO ACCOUNT (FOR LECTURER)</span>
-            <p class="mb-1">Preloaded with 4 semesters of sample data.</p>
-            <p class="mb-2"><b>Username:</b> admin<br><b>Password:</b> 1234</p>
-            <button class="btn btn-outline-primary w-100" id="demoLoginButton" type="button"><i class="bi bi-lightning-charge me-2"></i>Demo Login</button>
-          </div>
-          <p class="auth-switch">New here? <button class="link-button" id="showRegister" type="button">Create an account</button></p>
+    <section class="auth-card">
+      <div class="auth-logo">
+        <div class="brand-mark"><i class="bi bi-mortarboard"></i></div>
+        <h1>BelAjar</h1>
+        <p>Your whole degree journey, one dashboard.</p>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginSection">
+        <h2>Welcome back</h2>
+        <p class="muted mb-4">Sign in to continue to your dashboard.</p>
+        <form id="loginForm">
+          <label class="form-label" for="loginUsername">Username</label>
+          <div class="field"><i class="bi bi-person field-icon"></i>
+            <input class="form-control" id="loginUsername" required placeholder="Enter username" autocomplete="username"></div>
+
+          <label class="form-label" for="loginPassword">Password</label>
+          <div class="field has-toggle"><i class="bi bi-lock field-icon"></i>
+            <input class="form-control" id="loginPassword" type="password" required placeholder="Enter password" autocomplete="current-password">
+            <button class="pw-toggle" type="button" data-target="loginPassword" aria-label="Show or hide password"><i class="bi bi-eye"></i></button></div>
+
+          <div id="loginMessage" class="form-message"></div>
+          <button class="btn btn-primary w-100 mt-2" type="submit">Sign In <i class="bi bi-arrow-right ms-2"></i></button>
+        </form>
+
+        <div class="demo-login">
+          <div><span class="eyebrow">DEMO ACCOUNT (FOR LECTURER)</span>
+            <p class="mb-0"><b>admin</b> / <b>1234</b> · 4 semesters of sample data</p></div>
+          <button class="btn btn-outline-primary btn-sm" id="demoLoginButton" type="button"><i class="bi bi-lightning-charge me-1"></i>Demo Login</button>
         </div>
 
-        <!-- REGISTER -->
-        <div id="registerSection" class="d-none">
-          <p class="eyebrow">GET STARTED</p>
-          <h2>Create your account</h2>
-          <p class="muted mb-4">Start with a clean slate and add your own courses.</p>
-          <form id="registerForm">
-            <label class="form-label" for="registerName">Full name</label>
-            <input class="form-control mb-3" id="registerName" required maxlength="60" placeholder="Your name">
-            <label class="form-label" for="registerUsername">Username</label>
-            <input class="form-control mb-3" id="registerUsername" required minlength="3" maxlength="20" placeholder="Choose a username">
-            <label class="form-label" for="registerPassword">Password</label>
-            <input class="form-control mb-3" id="registerPassword" type="password" required minlength="4" placeholder="At least 4 characters">
-            <label class="form-label" for="confirmPassword">Confirm password</label>
-            <input class="form-control mb-2" id="confirmPassword" type="password" required placeholder="Re-enter password">
-            <div id="registerMessage" class="form-message"></div>
-            <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">Create Account</button>
-          </form>
-          <p class="auth-switch">Already have an account? <button class="link-button" id="showLogin" type="button">Sign in</button></p>
-        </div>
+        <p class="auth-switch">New here? <button class="link-button" id="showRegister" type="button">Create an account</button></p>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="registerSection" class="d-none">
+        <h2>Create your account</h2>
+        <p class="muted mb-4">Start with a clean slate and add your own courses.</p>
+        <form id="registerForm">
+          <label class="form-label" for="registerName">Full name</label>
+          <div class="field"><i class="bi bi-person-badge field-icon"></i>
+            <input class="form-control" id="registerName" required maxlength="60" placeholder="Your name" autocomplete="name"></div>
+
+          <label class="form-label" for="registerUsername">Username</label>
+          <div class="field"><i class="bi bi-at field-icon"></i>
+            <input class="form-control" id="registerUsername" required minlength="3" maxlength="20" placeholder="Choose a username" autocomplete="username"></div>
+
+          <label class="form-label" for="registerPassword">Password</label>
+          <div class="field has-toggle"><i class="bi bi-lock field-icon"></i>
+            <input class="form-control" id="registerPassword" type="password" required minlength="4" placeholder="At least 4 characters" autocomplete="new-password">
+            <button class="pw-toggle" type="button" data-target="registerPassword" aria-label="Show or hide password"><i class="bi bi-eye"></i></button></div>
+
+          <label class="form-label" for="confirmPassword">Confirm password</label>
+          <div class="field has-toggle"><i class="bi bi-shield-lock field-icon"></i>
+            <input class="form-control" id="confirmPassword" type="password" required placeholder="Re-enter password" autocomplete="new-password">
+            <button class="pw-toggle" type="button" data-target="confirmPassword" aria-label="Show or hide password"><i class="bi bi-eye"></i></button></div>
+
+          <div id="registerMessage" class="form-message"></div>
+          <button class="btn btn-primary w-100 mt-2" type="submit">Create Account</button>
+        </form>
+        <p class="auth-switch">Already have an account? <button class="link-button" id="showLogin" type="button">Sign in</button></p>
       </div>
     </section>
+
+    <p class="auth-copy">© 2026 BelAjar · IMS566 Individual Project by Nur Aishah Nabilah</p>
   </main>
 
   <!-- ===================== MAIN APPLICATION ===================== -->
