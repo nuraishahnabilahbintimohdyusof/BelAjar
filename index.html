@@ -217,10 +217,17 @@
               <select id="typeFilter" class="form-select"><option value="all">All types</option><option>Assignment</option><option>Quiz</option><option>Exam</option></select>
               <select id="statusFilter" class="form-select"><option value="all">All statuses</option><option>Pending</option><option>Done</option></select>
               <select id="modeFilter" class="form-select"><option value="all">Individual &amp; group</option><option>Individual</option><option>Group</option></select>
+              <select id="sortSelect" class="form-select sort-select" title="Sort by">
+                <option value="deadline-asc">Sort: deadline (soonest first)</option>
+                <option value="deadline-desc">Sort: deadline (latest first)</option>
+                <option value="priority-high">Sort: priority (high → low)</option>
+                <option value="priority-low">Sort: priority (low → high)</option>
+                <option value="course">Sort: course (A–Z)</option>
+              </select>
             </div>
             <div class="table-responsive">
               <table class="table align-middle">
-                <thead><tr><th>Title</th><th>Course</th><th>Type</th><th>Mode</th><th>Date</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <thead><tr><th>Task</th><th>Type</th><th>Priority</th><th>Date</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
                 <tbody id="taskBody"></tbody>
               </table>
             </div>
@@ -237,11 +244,13 @@
               <strong id="calTitle"></strong>
               <button class="btn btn-light btn-sm" id="calNext" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
               <button class="btn btn-outline-primary btn-sm" id="calToday">Today</button>
+              <button class="btn btn-primary btn-sm" id="addEventButton"><i class="bi bi-plus-lg me-1"></i>Add Event</button>
             </div>
           </div>
           <article class="panel">
             <div class="cal-legend">
               <span><i class="type-assignment"></i>Assignment</span><span><i class="type-quiz"></i>Quiz</span><span><i class="type-exam"></i>Exam</span>
+              <span><i class="ev-club"></i>Club</span><span><i class="ev-program"></i>Program</span><span><i class="ev-parttime"></i>Part-time</span><span><i class="ev-personal"></i>Personal</span>
               <span><i class="cal-break-key"></i>Mid-sem break</span><span><i class="cal-today-key"></i>Today</span>
             </div>
             <div class="cal-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
@@ -308,11 +317,38 @@
             <div class="col-md-4"><label class="form-label" for="tMode">Mode</label><select class="form-select mb-3" id="tMode"><option>Individual</option><option>Group</option></select></div>
           </div>
           <div class="row">
-            <div class="col-md-6"><label class="form-label" for="tDate">Date</label><input class="form-control" id="tDate" type="date" required></div>
-            <div class="col-md-6"><label class="form-label" for="tStatus">Status</label><select class="form-select" id="tStatus"><option>Pending</option><option>Done</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="tDate">Date</label><input class="form-control" id="tDate" type="date" required></div>
+            <div class="col-md-4"><label class="form-label" for="tPriority">Priority</label><select class="form-select" id="tPriority"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="tStatus">Status</label><select class="form-select" id="tStatus"><option>Pending</option><option>Done</option></select></div>
           </div>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+      </form>
+    </div></div>
+  </div>
+
+  <!-- ===================== PERSONAL EVENT MODAL ===================== -->
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <form id="eventForm">
+        <div class="modal-header"><div><p class="eyebrow mb-1">PERSONAL EVENT</p><h2 class="modal-title fs-5" id="eventModalTitle">Add Event</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+          <input type="hidden" id="editingEventId">
+          <label class="form-label" for="evTitle">Event name</label>
+          <input class="form-control mb-3" id="evTitle" required maxlength="60" placeholder="e.g. Club meeting, part-time shift">
+          <div class="row">
+            <div class="col-md-4"><label class="form-label" for="evCategory">Category</label><select class="form-select mb-3" id="evCategory"></select></div>
+            <div class="col-md-4"><label class="form-label" for="evDate">Date</label><input class="form-control mb-3" id="evDate" type="date" required></div>
+            <div class="col-md-4"><label class="form-label" for="evTime">Time (optional)</label><input class="form-control mb-3" id="evTime" type="time"></div>
+          </div>
+          <label class="form-label" for="evNotes">Notes (optional)</label>
+          <input class="form-control" id="evNotes" maxlength="120" placeholder="Location, reminder...">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-danger me-auto d-none" id="deleteEventButton">Delete</button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
       </form>
     </div></div>
   </div>
