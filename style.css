@@ -107,42 +107,67 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .dropdown-item:hover { background: var(--surface-soft); color: var(--primary); }
 
 /* ---------- 2. AUTHENTICATION ---------- */
-.auth-page { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
-.auth-brand {
-  background: linear-gradient(145deg, #0a3fd1, #1a73ff);
-  color: white; padding: 65px 10%; display: flex;
-  flex-direction: column; justify-content: center; position: relative; overflow: hidden;
-}
-.auth-brand::after {
-  content: ""; position: absolute; width: 420px; height: 420px;
-  border: 1px solid rgba(255,255,255,.15); border-radius: 50%;
-  right: -160px; bottom: -170px;
-}
 .brand-mark {
   width: 42px; height: 42px; border-radius: 12px;
   background: rgba(255,255,255,.18); display: inline-grid;
   place-items: center; font-size: 23px;
 }
-.auth-brand h1 { color: white; font-size: 42px; margin: 22px 0 8px; }
-.auth-brand > p { color: rgba(255,255,255,.78); }
-.auth-illustration { margin: 65px 0 40px; max-width: 390px; }
-.illustration-card {
-  background: rgba(255,255,255,.96); color: #292744;
-  border-radius: 18px; padding: 25px; box-shadow: 0 25px 60px rgba(28,20,90,.2);
+
+/* Bright gradient page with a centred card */
+.auth-page {
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; padding: 32px 18px; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #0a3fd1 0%, #1a5cff 45%, #00a3ff 100%);
 }
-.illustration-card h4 { font-size: 21px; font-weight: 800; margin: 15px 0; }
-.illustration-card small { display: block; margin-top: 10px; color: #77758d; }
-.illustration-card .progress { height: 9px; background: #dbe6ff; }
-.illustration-card .progress-bar { background: var(--primary); border-radius: 20px; }
-.auth-footer-note { font-size: 12px; }
-.auth-panel { display: grid; place-items: center; padding: 40px 24px; }
-.auth-box { width: min(100%, 420px); }
-.auth-box h2 { font-size: 27px; font-weight: 800; letter-spacing: -.7px; }
-.auth-switch { margin-top: 24px; text-align: center; color: var(--muted); font-size: 12px; }
+.auth-shape { position: absolute; border-radius: 50%; pointer-events: none; }
+.auth-shape.one { width: 440px; height: 440px; background: rgba(255,255,255,.12); top: -150px; right: -110px; }
+.auth-shape.two { width: 260px; height: 260px; background: #ffd400; bottom: -120px; left: -70px; }
+.auth-shape.three { width: 150px; height: 150px; border: 24px solid rgba(255,255,255,.14); top: 16%; left: 7%; }
+.auth-chip {
+  position: absolute; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.96);
+  color: #202238; border-radius: 14px; padding: 12px 16px; font-size: 12px; font-weight: 700;
+  box-shadow: 0 16px 40px rgba(10,30,120,.25);
+}
+.auth-chip i { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: #fff; font-size: 17px; }
+.auth-chip small { display: block; color: #6b6e85; font-weight: 600; font-size: 10px; margin-top: 2px; }
+.chip-a { top: 13%; right: 11%; } .chip-a i { background: #00a859; }
+.chip-b { bottom: 24%; left: 9%; } .chip-b i { background: #ff8800; }
+.chip-c { bottom: 32%; right: 8%; } .chip-c i { background: #e5121f; }
+
+.auth-card {
+  position: relative; z-index: 1; width: min(100%, 440px); background: var(--surface); color: var(--text);
+  border-radius: 22px; padding: 34px 32px 26px; box-shadow: 0 30px 70px rgba(5,20,110,.38);
+}
+.auth-logo { text-align: center; margin-bottom: 24px; }
+.auth-logo .brand-mark { width: 54px; height: 54px; font-size: 28px; color: #fff; background: linear-gradient(135deg, #1a5cff, #00a3ff); box-shadow: 0 10px 24px rgba(26,92,255,.4); }
+.auth-logo h1 { font-size: 26px; margin: 12px 0 2px; letter-spacing: -.8px; }
+.auth-logo p { color: var(--muted); font-size: 12px; margin: 0; }
+.auth-card h2 { font-size: 20px; font-weight: 800; letter-spacing: -.4px; }
+
+/* Inputs with an icon on the left (and a show/hide button for passwords) */
+.field { position: relative; margin-bottom: 14px; }
+.field-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+.field .form-control { padding-left: 42px; height: 48px; }
+.field.has-toggle .form-control { padding-right: 48px; }
+.pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted); width: 38px; height: 38px; border-radius: 8px; }
+.pw-toggle:hover { color: var(--primary); }
+.auth-card .btn-primary { height: 48px; border-radius: 12px; font-size: 14px; }
+.form-message { color: #e5121f; font-size: 12px; min-height: 16px; margin: -4px 0 6px; }
+
+.demo-login {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 20px;
+  background: var(--surface-soft); border: 1px dashed var(--primary); border-radius: 14px; padding: 14px 16px; font-size: 12px;
+}
+.demo-login .eyebrow { margin-bottom: 4px; font-size: 9px; }
+.auth-switch { margin: 20px 0 0; text-align: center; color: var(--muted); font-size: 12px; }
 .link-button { border: 0; background: none; color: var(--primary); font-weight: 700; }
-.demo-login { background: var(--surface-soft); border: 1px solid var(--border); border-radius: 12px; padding: 17px; color: var(--text); font-size: 12px; }
-.demo-login p { color: var(--muted); }
-.form-message { color: #dc3545; font-size: 12px; min-height: 16px; margin-top: 7px; }
+.auth-copy { position: relative; z-index: 1; margin: 0; text-align: center; color: rgba(255,255,255,.88); font-size: 11px; }
+
+@media (max-width: 1000px) { .auth-chip { display: none; } }
+@media (max-width: 480px) {
+  .auth-page { padding: 20px 12px; justify-content: flex-start; }
+  .auth-card { padding: 26px 20px 22px; border-radius: 18px; }
+}
 
 /* ---------- 3. APP LAYOUT ---------- */
 .app-shell { min-height: 100vh; }
@@ -286,11 +311,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 @media (max-width: 600px) {
-  .auth-page { grid-template-columns: minmax(0, 1fr); }
-  .auth-brand { padding: 30px 28px; min-height: 260px; }
-  .auth-brand h1 { font-size: 32px; margin-top: 12px; }
-  .auth-illustration, .auth-footer-note { display: none; }
-  .auth-panel { padding: 35px 24px; }
   .topbar { height: 66px; padding: 0 13px; }
   .topbar-heading { margin-right: auto; }
   .topbar-actions { gap: 6px; }
