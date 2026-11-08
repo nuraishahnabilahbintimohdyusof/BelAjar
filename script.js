@@ -296,13 +296,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("courseBody").innerHTML = list.map(c => `
       <tr>
-        <td>${c.semester}</td>
-        <td><b>${escapeHTML(c.code)}</b></td>
-        <td>${escapeHTML(c.name)}</td>
-        <td>${c.credit}</td>
-        <td>${isGraded(c) ? `<span class="status-badge grade-badge">${c.grade}</span>` : '<span class="muted">In progress</span>'}</td>
-        <td>${isGraded(c) ? GRADES[c.grade].toFixed(2) : "–"}</td>
-        <td><div class="action-buttons">
+        <td data-label="Semester">${c.semester}</td>
+        <td data-label="Code"><b>${escapeHTML(c.code)}</b></td>
+        <td class="cell-title" data-label="Course">${escapeHTML(c.name)}</td>
+        <td data-label="Credit">${c.credit}</td>
+        <td data-label="Grade">${isGraded(c) ? `<span class="status-badge grade-badge">${c.grade}</span>` : '<span class="muted">In progress</span>'}</td>
+        <td data-label="Points">${isGraded(c) ? GRADES[c.grade].toFixed(2) : "–"}</td>
+        <td class="cell-actions"><div class="action-buttons">
           <button data-action="edit" data-id="${escapeHTML(c.id)}" title="Edit"><i class="bi bi-pencil"></i></button>
           <button data-action="delete" data-id="${escapeHTML(c.id)}" title="Delete"><i class="bi bi-trash"></i></button>
         </div></td>
@@ -407,12 +407,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("taskBody").innerHTML = list.map(t => `
       <tr>
-        <td><div class="task-name-cell">${escapeHTML(t.title)}</div><div class="task-sub">${escapeHTML(t.course)} · ${t.mode}</div></td>
-        <td>${typeBadge(t)}</td>
-        <td>${priorityBadge(t)}</td>
-        <td>${formatDate(t.date)}${countdown(t)}</td>
-        <td><span class="status-badge state-${t.status.toLowerCase()}">${t.status}</span></td>
-        <td><div class="action-buttons">
+        <td class="cell-title" data-label="Task"><div class="task-name-cell">${escapeHTML(t.title)}</div><div class="task-sub">${escapeHTML(t.course)} · ${t.mode}</div></td>
+        <td data-label="Type">${typeBadge(t)}</td>
+        <td data-label="Priority">${priorityBadge(t)}</td>
+        <td data-label="Due"><span>${formatDate(t.date)}${countdown(t)}</span></td>
+        <td data-label="Status"><span class="status-badge state-${t.status.toLowerCase()}">${t.status}</span></td>
+        <td class="cell-actions"><div class="action-buttons">
           <button data-action="toggle" data-id="${escapeHTML(t.id)}" title="Mark done / pending"><i class="bi bi-check2-circle"></i></button>
           <button data-action="edit" data-id="${escapeHTML(t.id)}" title="Edit"><i class="bi bi-pencil"></i></button>
           <button data-action="delete" data-id="${escapeHTML(t.id)}" title="Delete"><i class="bi bi-trash"></i></button>
@@ -467,7 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = dayDiff(meta.semStart, meta.semEnd) + 1;
     const pct = Math.max(0, Math.min(100, Math.round((dayDiff(meta.semStart, makeDate(0)) + 1) / total * 100)));
     const midIn = meta.midStart ? dayDiff(makeDate(0), meta.midStart) : -1;
-    const extra = midIn > 0 ? ` · Mid-sem break in ${midIn} day(s)` : "";
+    const extra = !meta.midStart ? " · Add your mid-sem break dates" : midIn > 0 ? ` · Mid-sem break in ${midIn} day(s)` : "";
     $("semesterCard").innerHTML = `
       <div class="sem-row">
         <div>
@@ -499,7 +499,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const start = $("semStart").value, end = $("semEnd").value, ms = $("midStart").value, me = $("midEnd").value;
     const fail = (text) => { $("semesterMessage").textContent = text; };
     if (end <= start) return fail("End date must be after the start date.");
-    if ((ms && !me) || (!ms && me) || (ms && me && (me < ms || ms < start || me > end))) return fail("Mid-sem break needs both dates, inside the semester.");
+    if (!ms || !me) return fail("Please enter the mid-sem break start and end dates.");
+    if (me < ms || ms < start || me > end) return fail("The mid-sem break must be inside the semester dates.");
     meta = { ...meta, semNo: Number($("semNo").value), semStart: start, semEnd: end, midStart: ms, midEnd: me };
     semesterModal.hide();
     refreshAll();
@@ -616,10 +617,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const next = [...pending].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
     $("upcomingBody").innerHTML = next.map(t => `
-      <tr><td><div class="task-name-cell">${escapeHTML(t.title)}</div></td><td>${escapeHTML(t.course)}</td><td>${typeBadge(t)}</td><td>${formatDate(t.date)}${countdown(t)}</td></tr>`).join("");
+      <tr>
+        <td class="cell-title" data-label="Task"><div class="task-name-cell">${escapeHTML(t.title)}</div></td>
+        <td data-label="Course">${escapeHTML(t.course)}</td>
+        <td data-label="Type">${typeBadge(t)}</td>
+        <td data-label="Due"><span>${formatDate(t.date)}${countdown(t)}</span></td>
+      </tr>`).join("");
     $("upcomingEmpty").classList.toggle("d-none", next.length > 0);
 
+    renderDashboardTables();
     drawCharts();
+  }
+
+  function renderDashboardTables() {
+    // Semester results: one row per semester, with GPA and running CGPA
+    const sems = range(semesterCount()).filter(n => courses.some(c => c.semester === n));
+    $("semResultsBody").innerHTML = sems.map(n => {
+      const list = courses.filter(c => c.semester === n);
+      const credits = list.reduce((t, c) => t + c.credit, 0);
+      const note = list.some(c => !isGraded(c)) ? ' <span class="muted">(in progress)</span>' : "";
+      return `<tr>
+        <td class="cell-title" data-label="Semester">Semester ${n}${note}</td>
+        <td data-label="Courses">${list.length}</td>
+        <td data-label="Credits">${credits}</td>
+        <td data-label="GPA"><b>${fmt(gpa(list))}</b></td>
+        <td data-label="CGPA">${fmt(gpa(courses.filter(c => c.semester <= n)))}</td>
+      </tr>`;
+    }).join("");
+    $("semResultsEmpty").classList.toggle("d-none", sems.length > 0);
+
+    // Upcoming personal events (next 5)
+    const upcoming = events.filter(x => x.date >= makeDate(0))
+      .sort((a, b) => a.date.localeCompare(b.date) || (a.time || "").localeCompare(b.time || "")).slice(0, 5);
+    $("eventsBody").innerHTML = upcoming.map(x => `<tr>
+        <td class="cell-title" data-label="Event">${escapeHTML(x.title)}</td>
+        <td data-label="Category"><span class="status-badge ${evClass(x.category)}">${x.category}</span></td>
+        <td data-label="Date">${formatDate(x.date)}</td>
+        <td data-label="Time">${x.time || "–"}</td>
+      </tr>`).join("");
+    $("eventsEmpty").classList.toggle("d-none", upcoming.length > 0);
   }
 
   function makeChart(id, config) {
@@ -685,6 +721,61 @@ document.addEventListener("DOMContentLoaded", () => {
         x: { stacked: true, title: { display: true, text: "Subject (course code)", color: text }, ticks: { color: text }, grid: { display: false } },
         y: { stacked: true, beginAtZero: true, title: { display: true, text: "Number of items", color: text }, ticks: { precision: 0, color: text } }
       } }
+    });
+
+    // ----- More charts -----
+    const axes = (xTitle, yTitle, stacked = false) => ({
+      x: { stacked, title: { display: true, text: xTitle, color: text }, ticks: { color: text }, grid: { display: false } },
+      y: { stacked, beginAtZero: true, title: { display: true, text: yTitle, color: text }, ticks: { precision: 0, color: text } }
+    });
+    const pendingTasks = tasks.filter(t => !isDone(t));
+
+    // 5. Pending items by priority (polar area)
+    const prios = ["High", "Medium", "Low"];
+    const prioCounts = prios.map(p => pendingTasks.filter(t => t.priority === p).length);
+    makeChart("priorityChart", {
+      type: "polarArea",
+      data: { labels: prios.map((p, i) => `${p} (${prioCounts[i]})`), datasets: [{ data: prioCounts, backgroundColor: ["#e5121f", "#ff8800", "#00a859"], borderWidth: 0 }] },
+      options: { ...base, scales: { r: { ticks: { precision: 0, color: text, backdropColor: "transparent" }, grid: { color: "rgba(128,128,128,.25)" } } } }
+    });
+
+    // 6. Individual vs group, per type (stacked bar)
+    const types = ["Assignment", "Quiz", "Exam"];
+    makeChart("typeModeChart", {
+      type: "bar",
+      data: { labels: types, datasets: ["Individual", "Group"].map((mode, i) => ({ label: mode, data: types.map(ty => tasks.filter(t => t.type === ty && t.mode === mode).length), backgroundColor: i ? "#00a3ff" : "#1a5cff" })) },
+      options: { ...base, scales: axes("Type of item", "Number of items", true) }
+    });
+
+    // 7. Workload over the next 8 weeks (deadlines + personal events)
+    const weekLabels = range(8, 0).map(w => w === 0 ? "This week" : `+${w} wk`);
+    const perWeek = (list) => weekLabels.map((_, w) => list.filter(i => { const d = daysUntil(i.date); return d >= w * 7 && d < (w + 1) * 7; }).length);
+    makeChart("weeklyChart", {
+      type: "line",
+      data: {
+        labels: weekLabels,
+        datasets: [
+          { label: "Deadlines & exams", data: perWeek(pendingTasks), borderColor: "#e5121f", backgroundColor: "rgba(229,18,31,.15)", fill: true, tension: 0.3 },
+          { label: "Personal events", data: perWeek(events), borderColor: "#8a2be2", backgroundColor: "rgba(138,43,226,.12)", fill: true, tension: 0.3 }
+        ]
+      },
+      options: { ...base, scales: axes("Weeks from today", "Number of items") }
+    });
+
+    // 8. Credit hours per semester (bar)
+    makeChart("creditsChart", {
+      type: "bar",
+      data: { labels: sems.map(n => "Sem " + n), datasets: [{ label: "Credit hours", data: sems.map(n => courses.filter(c => c.semester === n).reduce((t, c) => t + c.credit, 0)), backgroundColor: "#1a5cff", borderRadius: 6 }] },
+      options: { ...base, plugins: { legend: { display: false } }, scales: axes("Semester", "Credit hours") }
+    });
+
+    // 9. Personal events by category (pie)
+    const cats = ["Club", "Program", "Part-time", "Personal", "Other"];
+    const catCounts = cats.map(c => events.filter(x => x.category === c).length);
+    makeChart("eventsChart", {
+      type: "pie",
+      data: { labels: cats.map((c, i) => `${c} (${catCounts[i]})`), datasets: [{ data: catCounts, backgroundColor: ["#8a2be2", "#00a3ff", "#d6008f", "#5f6368", "#8d5524"], borderWidth: 0 }] },
+      options: base
     });
   }
 
