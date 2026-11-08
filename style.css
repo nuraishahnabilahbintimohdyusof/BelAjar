@@ -201,7 +201,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .page-heading-row .muted { font-size: 12px; }
 
 /* ---------- 4. CARDS, STATS & CHARTS ---------- */
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .stat-card, .panel {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 13px; box-shadow: var(--shadow);
@@ -221,7 +221,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .panel-heading p { margin: 0; font-size: 11px; }
 
 /* Dashboard charts grid: all charts visible at once */
-.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 17px; margin-top: 18px; }
+.charts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-top: 18px; }
 .chart-container { height: 260px; position: relative; }
 .chart-wide { grid-column: 1 / -1; }
 
@@ -254,7 +254,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .empty-state h3 { font-size: 15px; color: var(--text); }
 
 /* ---------- 6. BUDGETS ---------- */
-.category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.category-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .category-card { background: var(--surface); border: 1px solid var(--border); border-radius: 13px; padding: 22px; box-shadow: var(--shadow); }
 .category-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px; font-size: 19px; margin-bottom: 18px; }
 .category-card h3 { font-size: 15px; font-weight: 700; }
@@ -271,8 +271,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ---------- 8. RESPONSIVE ---------- */
 @media (max-width: 1100px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 850px) {
@@ -282,11 +282,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .mobile-menu { display: grid; }
   .topbar { padding: 0 20px; gap: 12px; }
   .content-wrap { padding: 25px 20px 45px; }
-  .charts-grid { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 600px) {
-  .auth-page { grid-template-columns: 1fr; }
+  .auth-page { grid-template-columns: minmax(0, 1fr); }
   .auth-brand { padding: 30px 28px; min-height: 260px; }
   .auth-brand h1 { font-size: 32px; margin-top: 12px; }
   .auth-illustration, .auth-footer-note { display: none; }
@@ -304,7 +304,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .task-toolbar { display: grid; grid-template-columns: 1fr 1fr; }
   .task-toolbar .form-select { width: 100%; }
   .search-wrap { grid-column: 1 / -1; }
-  .category-grid { grid-template-columns: 1fr; gap: 10px; }
+  .category-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .category-card { padding: 15px; }
   .panel { padding: 15px; }
   .chart-container { height: 220px; }
@@ -362,7 +362,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .cal-legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 .cal-break-key { background: #ffd400; }
 .cal-today-key { border: 2px solid var(--primary); }
-.cal-weekdays, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-weekdays, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .cal-weekdays span { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: 6px 0; }
 .cal-cell { min-height: 96px; border: 1px solid var(--border); border-radius: 10px; padding: 6px; background: var(--surface-soft); display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
 .cal-cell.empty { background: transparent; border-color: transparent; }
@@ -387,3 +387,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .cal-nav { flex-wrap: wrap; }
   .sem-week { font-size: 28px; }
 }
+
+/* ---------- LAYOUT FIXES (nothing should push the page off-screen) ---------- */
+html, body { max-width: 100%; overflow-x: hidden; }
+.main-area, .content-wrap, .panel, .stat-card, .chart-container { min-width: 0; }
+.table-responsive { max-width: 100%; }
+
+/* ---------- PRIORITY, EVENTS, SORT ---------- */
+.priority-high { background: #e5121f; color: #fff; }
+.priority-medium { background: #ff8800; color: #fff; }
+.priority-low { background: #00a859; color: #fff; }
+.ev-club { background: #8a2be2; color: #fff; }
+.ev-program { background: #00a3ff; color: #fff; }
+.ev-parttime { background: #d6008f; color: #fff; }
+.ev-personal { background: #5f6368; color: #fff; }
+.ev-other { background: #8d5524; color: #fff; }
+.cal-cell[data-date] { cursor: pointer; }
+.task-sub { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.task-toolbar .sort-select { width: 235px; }
+@media (max-width: 600px) { .task-toolbar .sort-select { width: 100%; grid-column: 1 / -1; } }
