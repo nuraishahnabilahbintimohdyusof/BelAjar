@@ -153,6 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function startSession(user) {
     currentUser = user;
+    localStorage.setItem("studyTrackSession", user.username); // remember who is logged in (survives refresh)
     loadData(user.username);
     $("authPage").classList.add("d-none");
     $("appShell").classList.remove("d-none");
@@ -167,6 +168,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function logout() {
     currentUser = null;
+    localStorage.removeItem("studyTrackSession");
+    localStorage.removeItem("studyTrackPage");
     courses = []; tasks = []; events = [];
     Object.values(charts).forEach(c => c.destroy());
     charts = {};
@@ -223,6 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $(pageId).classList.remove("d-none");
     document.querySelectorAll(".side-nav .nav-link").forEach(b => b.classList.toggle("active", b.dataset.page === pageId));
     $("topbarPageTitle").textContent = pageTitles[pageId];
+    if (currentUser) localStorage.setItem("studyTrackPage", pageId); // remember the page for refresh
     $("sidebar").classList.remove("show");
   }
 
@@ -239,6 +243,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   document.querySelectorAll("[data-theme-choice]").forEach(b => b.addEventListener("click", () => applyTheme(b.dataset.themeChoice)));
   applyTheme(localStorage.getItem("studyTrackTheme") || "system");
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if ((localStorage.getItem("studyTrackTheme") || "system") === "system") applyTheme("system");
+  });
 
   // ---------- FULLSCREEN ----------
   $("fullscreenButton").addEventListener("click", async () => {
@@ -672,7 +679,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function drawCharts() {
-    const text = getComputedStyle(document.body).color;
+    // Colours come straight from the theme (reading the page colour mid-transition gave the old theme's colour)
+    const dark = document.documentElement.getAttribute("data-bs-theme") === "dark";
+    const text = dark ? "#e8e9f5" : "#2b2e45";
+    const grid = dark ? "rgba(255,255,255,.16)" : "rgba(0,0,0,.1)";
+    Chart.defaults.color = text;       // axis labels, legends, titles
+    Chart.defaults.borderColor = grid; // grid lines
     const legend = { position: "bottom", labels: { color: text, usePointStyle: true, padding: 16 } };
     const base = { responsive: true, maintainAspectRatio: false, plugins: { legend } };
     const sems = range(semesterCount());
@@ -744,7 +756,7 @@ document.addEventListener("DOMContentLoaded", () => {
     makeChart("priorityChart", {
       type: "polarArea",
       data: { labels: prios.map((p, i) => `${p} (${prioCounts[i]})`), datasets: [{ data: prioCounts, backgroundColor: ["#e5121f", "#ff8800", "#00a859"], borderWidth: 0 }] },
-      options: { ...base, scales: { r: { ticks: { precision: 0, color: text, backdropColor: "transparent" }, grid: { color: "rgba(128,128,128,.25)" } } } }
+      options: { ...base, scales: { r: { ticks: { precision: 0, color: text, backdropColor: "transparent" }, grid: { color: grid }, angleLines: { color: grid } } } }
     });
 
     // 6. Individual vs group, per type (stacked bar)
@@ -797,24 +809,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const d = daysUntil(t.date);
       const label = `${escapeHTML(t.title)} (${escapeHTML(t.course)})`;
       if (d < 0) {
-        items.push({ d, icon: "bi-exclamation-circle", color: "text-danger", title: "Overdue", text: `${label} was due ${-d} day(s) ago.` });
+        items.push({ d, icon: "bi-exclamation-circle", color: "nb-red", title: "Overdue", text: `${label} was due ${-d} day(s) ago.` });
       } else if (t.type === "Exam" && d <= STUDY_DAYS) {
-        items.push({ d, icon: "bi-alarm", color: "text-warning", title: "Study standby", text: `${label} is ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
+        items.push({ d, icon: "bi-alarm", color: "nb-orange", title: "Study standby", text: `${label} is ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
       } else if (d <= 3) {
-        items.push({ d, icon: "bi-clock", color: "text-primary", title: "Due soon", text: `${label} is ${d === 0 ? "due today" : "due in " + d + " day(s)"}.` });
+        items.push({ d, icon: "bi-clock", color: "nb-blue", title: "Due soon", text: `${label} is ${d === 0 ? "due today" : "due in " + d + " day(s)"}.` });
       }
     });
     if (meta.midStart) {
       const d = daysUntil(meta.midStart);
-      if (d >= 0 && d <= 7) items.push({ d, icon: "bi-cup-hot", color: "text-success", title: "Mid-sem break", text: `Mid-sem break starts ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
+      if (d >= 0 && d <= 7) items.push({ d, icon: "bi-cup-hot", color: "nb-green", title: "Mid-sem break", text: `Mid-sem break starts ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
     }
     if (meta.semEnd) {
       const d = daysUntil(meta.semEnd);
-      if (d >= 0 && d <= 14) items.push({ d, icon: "bi-flag", color: "text-primary", title: "Semester ending", text: `Semester ends ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
+      if (d >= 0 && d <= 14) items.push({ d, icon: "bi-flag", color: "nb-blue", title: "Semester ending", text: `Semester ends ${d === 0 ? "today" : "in " + d + " day(s)"}.` });
     }
     events.forEach(x => {
       const d = daysUntil(x.date);
-      if (d === 0 || d === 1) items.push({ d, icon: "bi-calendar-event", color: "text-info", title: x.category, text: `${escapeHTML(x.title)} ${d === 0 ? "today" : "tomorrow"}${x.time ? " at " + x.time : ""}.` });
+      if (d === 0 || d === 1) items.push({ d, icon: "bi-calendar-event", color: "nb-sky", title: x.category, text: `${escapeHTML(x.title)} ${d === 0 ? "today" : "tomorrow"}${x.time ? " at " + x.time : ""}.` });
     });
     items.sort((a, b) => a.d - b.d);
 
@@ -822,7 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
     $("notificationBadge").classList.toggle("d-none", items.length === 0);
     $("notificationContent").innerHTML = items.length ? items.map(i => `
       <div class="d-flex gap-3 align-items-start py-3 border-bottom" style="border-color:var(--border)!important">
-        <i class="bi ${i.icon} ${i.color} fs-5"></i>
+        <span class="notif-icon ${i.color}"><i class="bi ${i.icon}"></i></span>
         <div><b class="d-block">${i.title}</b><span class="muted">${i.text}</span></div>
       </div>`).join("")
       : '<div class="empty-state"><i class="bi bi-bell-slash"></i><h3>You\'re all caught up!</h3><p>No reminders right now.</p></div>';
@@ -840,5 +852,13 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCalendar();
     updateDashboard();
     updateNotifications();
+  }
+
+  // ---------- RESTORE SESSION: after a refresh, stay logged in and on the same page ----------
+  const savedUser = getUsers().find(u => u.username === localStorage.getItem("studyTrackSession"));
+  if (savedUser) {
+    const savedPage = localStorage.getItem("studyTrackPage"); // read first: startSession() resets it to the dashboard
+    startSession(savedUser);
+    if (savedPage && pageTitles[savedPage]) showPage(savedPage);
   }
 });
